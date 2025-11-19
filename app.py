@@ -6,9 +6,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import mean_squared_error
 from datetime import datetime
 
-########################################
+
 # 1. DATA LOADING & PREPROCESSING
-########################################
+
 def load_data():
     # Load the CSV files (assumes UTF-8 encoding)
     asset_df = pd.read_csv("FAR-Trans-Data/asset_information.csv")
@@ -45,3 +45,19 @@ def build_rating_matrix(train_df):
     rating_matrix = rating_df.pivot(index='customerID', columns='ISIN', values='count').fillna(0)
     
     return rating_matrix, rating_df
+
+
+
+def matrix_factorization(rating_matrix, n_components=5):
+    # Perform low-rank approximation with TruncatedSVD
+    svd = TruncatedSVD(n_components=n_components, random_state=42)
+    U = svd.fit_transform(rating_matrix)
+    V = svd.components_.T  # shape: (num_assets, n_components)
+    
+    pred_ratings = np.dot(U, V.T)
+    pred_df = pd.DataFrame(pred_ratings, index=rating_matrix.index, columns=rating_matrix.columns)
+    return pred_df
+
+
+
+
