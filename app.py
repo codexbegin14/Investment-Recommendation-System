@@ -2,13 +2,16 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import mean_squared_error
+import streamlit as st
+from datetime import datetime
 
 # 1. DATA LOADING & PREPROCESSING
 def load_data():
-    asset_df = pd.read_csv("FAR-Trans-Data/asset_information.csv")
-    customer_df = pd.read_csv("FAR-Trans-Data/customer_information.csv")
-    transactions_df = pd.read_csv("FAR-Trans-Data/transactions.csv")
-    limit_prices_df = pd.read_csv("FAR-Trans-Data/limit_prices.csv")
+    asset_df = pd.read_csv("data/asset_information.csv")
+    customer_df = pd.read_csv("data/customer_information.csv")
+    transactions_df = pd.read_csv("data/transactions.csv")
+    limit_prices_df = pd.read_csv("data/limit_prices.csv")
     
     return asset_df, customer_df, transactions_df, limit_prices_df
 
@@ -222,13 +225,174 @@ def hybrid_recommendation(customer_id, rating_matrix, pred_df, rating_df, asset_
 
 
 
+def compute_rmse(pred_df, test_df):
+    """Compute RMSE only for user-item pairs in test set."""
+    if test_df.empty:
+        return None
+        
+    y_true, y_pred = [], []
+    for _, row in test_df.iterrows():
+        u, i = row['customerID'], row['ISIN']
+        if (u in pred_df.index) and (i in pred_df.columns):
+            y_true.append(1.0)  # held-out buy = implicit rating 1
+            y_pred.append(pred_df.at[u,i])
+    
+    if not y_true:
+        return None
+        
+    return np.sqrt(mean_squared_error(y_true, y_pred))
 
+def precision_recall_at_n(pred_func, train_df, test_df, rating_matrix, rating_df, asset_df, customer_df, limit_prices_df, weights, pred_ratings, N):
+    """Compute precision and recall at N for each user in test set."""
+    if test_df.empty:
+        return None, None
+        
+    precisions, recalls = [], []
+    valid_users = 0
+    
+    for _, row in test_df.iterrows():
+        try:
+            u, test_isin = row['customerID'], row['ISIN']
+            
+            # Skip if user has no training data
+            if u not in rating_matrix.index:
+                continue
+                
+            # Generate recommendations for u
+            recs = pred_func(u, rating_matrix, pred_ratings, rating_df, asset_df, customer_df, limit_prices_df, weights, top_n=N)
+            
+            # Skip if no recommendations could be generated
+            if recs is None or len(recs) == 0:
+                continue
+                
+            # Check if test item is in recommendations
+            hit = int(test_isin in recs.index)
+            precisions.append(hit / N)
+            recalls.append(hit)  # since there's only 1 held-out item
+            valid_users += 1
+            
+        except Exception as e:
+            print(f"Error processing user {u}: {str(e)}")
+            continue
+    
+    if valid_users == 0:
+        return None, None
+        
+    return np.mean(precisions), np.mean(recalls)
 
+def process_questionnaire_responses(responses):
+    """
+    Process questionnaire responses to determine risk level and investment capacity.
+    Returns a tuple of (risk_level, investment_capacity)
+    """
+    # Risk level determination based on key questions
+    risk_questions = {
+        'q16': 0.3,  # Risk appetite
+        'q17': 0.3,  # Investment expectations
+        'q18': 0.2,  # Focus on gains vs losses
+        'q19': 0.2   # Reaction to 20% decline
+    }
+    
+    risk_score = 0
+    for q, weight in risk_questions.items():
+        if q in responses:
+            answer = responses[q]
+            if q == 'q16':  # Risk appetite
+                risk_score += weight * {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'e': 0}[answer]
+            elif q == 'q17':  # Investment expectations
+                risk_score += weight * {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'e': 0}[answer]
+            elif q == 'q18':  # Focus on gains vs losses
+                risk_score += weight * {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'e': 0}[answer]
+            elif q == 'q19':  # Reaction to decline
+                risk_score += weight * {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'e': 0}[answer]
+    
+    # Map risk score to risk level
+    if risk_score >= 3.5:
+        risk_level = "Aggressive"
+    elif risk_score >= 2.5:
+        risk_level = "Balanced"
+    elif risk_score >= 1.5:
+        risk_level = "Income"
+    else:
+        risk_level = "Conservative"
+    
+    # Investment capacity determination
+    if 'q13' in responses:  # Amount of funds available to invest
+        investment = responses['q13']
+        if investment == 'a':
+            investment_capacity = "CAP_GT300K"
+        elif investment == 'b':
+            investment_capacity = "CAP_80K_300K"
+        elif investment == 'c':
+            investment_capacity = "CAP_30K_80K"
+        else:
+            investment_capacity = "CAP_LT30K"
+    else:
+        investment_capacity = "CAP_LT30K"  # Default to lowest capacity
+    
+    return risk_level, investment_capacity
 
+def update_customer_profile(customer_id, risk_level, investment_capacity, customer_df):
+    """Update customer profile with new questionnaire responses"""
+    new_row = pd.DataFrame({
+        'customerID': [customer_id],
+        'customerType': ['Mass'],  # Default type
+        'riskLevel': [risk_level],
+        'investmentCapacity': [investment_capacity],
+        'lastQuestionnaireDate': [datetime.now().strftime('%Y-%m-%d')],
+        'timestamp': [datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
+    })
+    
+    # Append new row to customer_df
+    updated_df = pd.concat([customer_df, new_row], ignore_index=True)
+    return updated_df
 
+def compute_roi_at_k(recommendations, limit_prices_df, k=10):
+    """
+    Compute Return on Investment (ROI) for top-k recommendations.
+    ROI is calculated using the profitability metric from limit_prices_df.
+    """
+    if recommendations is None or len(recommendations) == 0:
+        return None
+        
+    # Get top-k recommendations
+    top_k = recommendations.head(k)
+    
+    # Get profitability for recommended assets
+    roi_values = limit_prices_df.set_index('ISIN')['profitability'].loc[top_k.index]
+    
+    # Calculate average ROI
+    avg_roi = roi_values.mean()
+    
+    return avg_roi
 
-
-
-
-
+def compute_ndcg_at_k(recommendations, test_df, k=10):
+    """
+    Compute Normalized Discounted Cumulative Gain (nDCG) at k.
+    Uses the test set transactions as relevance indicators.
+    """
+    if recommendations is None or len(recommendations) == 0:
+        return None
+        
+    # Get top-k recommendations
+    top_k = recommendations.head(k)
+    
+    # Create relevance list (1 if item is in test set, 0 otherwise)
+    relevance = [1 if isin in test_df['ISIN'].values else 0 for isin in top_k.index]
+    
+    # Calculate DCG
+    dcg = 0
+    for i, rel in enumerate(relevance):
+        dcg += (2 ** rel - 1) / np.log2(i + 2)  # i+2 because log2(1) = 0
+    
+    # Calculate IDCG (ideal case: all relevant items are at the top)
+    idcg = 0
+    num_relevant = sum(relevance)
+    for i in range(min(num_relevant, k)):
+        idcg += 1 / np.log2(i + 2)
+    
+    # Calculate nDCG
+    ndcg = dcg / idcg if idcg > 0 else 0
+    
+    return ndcg
 
