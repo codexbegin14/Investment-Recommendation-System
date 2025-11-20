@@ -1,15 +1,10 @@
 import pandas as pd
 from datetime import datetime
 
-# ----------------------------------------
-# 6. PROFILE MANAGEMENT & QUESTIONNAIRE
-# ----------------------------------------
+
 
 def process_questionnaire_responses(responses):
-    """
-    Process questionnaire responses to determine risk level and investment capacity.
-    Returns a tuple of (risk_level, investment_capacity)
-    """
+
     # Risk level determination based on key questions
     risk_questions = {
         'q16': 0.3,  # Risk appetite
@@ -56,10 +51,7 @@ def process_questionnaire_responses(responses):
     return risk_level, investment_capacity
 
 def update_customer_profile(customer_id, risk_level, investment_capacity, customer_df):
-    """
-    Update customer profile DataFrame with new questionnaire responses.
-    This creates a new, timestamped entry for the customer.
-    """
+  
     current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     new_row = pd.DataFrame({

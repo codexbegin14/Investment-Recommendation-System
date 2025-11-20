@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
-# Note: datetime is not strictly needed here, but kept for clarity if future date logic is added
+
 
 
 # 2. COLLABORATIVE FILTERING COMPONENT
