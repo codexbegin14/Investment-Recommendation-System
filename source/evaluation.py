@@ -26,50 +26,49 @@ def compute_rmse(pred_df, test_df):
         
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
-def precision_recall_at_n(pred_func, train_df, test_df, rating_matrix, rating_df, asset_df, customer_df, limit_prices_df, weights, pred_ratings, N):
+# In source/evaluation.py
+
+# ... (other functions: compute_rmse, compute_roi_at_k, compute_ndcg_at_k)
+
+def precision_recall_at_n(all_recs_dict, test_df, N):
     """
-    Compute precision and recall at N for each user in test set.
+    Compute precision and recall at N using pre-calculated recommendations for test users.
     
-    pred_func must be the hybrid_recommendation function (passed from app.py)
-    to prevent circular imports between evaluation and recommender modules.
+    all_recs_dict: Dictionary {customerID: {set of top N ISINs}} containing the pre-run hybrid results.
     """
-    if test_df.empty:
+    if test_df.empty or not all_recs_dict:
         return None, None
         
     precisions, recalls = [], []
     valid_users = 0
     
-    # Iterate over the unique held-out transactions
-    for _, row in test_df.iterrows():
-        try:
-            u, test_isin = row['customerID'], row['ISIN']
-            
-            # Skip if user has no training data
-            if u not in rating_matrix.index:
-                continue
-                
-            # Generate recommendations for u using the passed function
-            recs = pred_func(u, rating_matrix, pred_ratings, rating_df, asset_df, customer_df, limit_prices_df, weights, top_n=N)
-            
-            # Skip if no recommendations could be generated
-            if recs is None or len(recs) == 0:
-                continue
-                
-            # Check if test item is in recommendations (a "hit")
-            hit = int(test_isin in recs.index)
-            precisions.append(hit / N)
-            recalls.append(hit)  # since there's only 1 held-out item in leave-one-out
-            valid_users += 1
-            
-        except Exception as e:
-            # print(f"Error processing user {u}: {str(e)}") # Useful for debugging, but not in final code
+    # Group by customer to handle the one held-out item per user
+    for u, u_test_df in test_df.groupby('customerID'):
+        test_isin = u_test_df['ISIN'].iloc[0] # Get the one held-out item
+        
+        if u not in all_recs_dict:
             continue
+            
+        recs_set = all_recs_dict.get(u, set())
+        
+        if not recs_set:
+            continue
+            
+        # Check if test item is in recommendations (a "hit")
+        hit = int(test_isin in recs_set)
+        
+        # Use actual N (which should be close to the requested N)
+        actual_N = len(recs_set) 
+        
+        if actual_N > 0:
+            precisions.append(hit / actual_N)
+            recalls.append(hit)
+            valid_users += 1
     
     if valid_users == 0:
         return None, None
         
     return np.mean(precisions), np.mean(recalls)
-
 def compute_roi_at_k(recommendations, limit_prices_df, k=10):
     """
     Compute Return on Investment (ROI) for top-k recommendations.

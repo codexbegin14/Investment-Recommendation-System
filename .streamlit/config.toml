@@ -1,0 +1,13 @@
+[theme]
+# Base theme to inherit from
+base="light" 
+# Primary color (a vibrant blue)
+primaryColor="#007bff"
+# Page background color (subtly off-white)
+backgroundColor="#f0f2f6" 
+# Container/Sidebar background color (clean white)
+secondaryBackgroundColor="#ffffff"
+# Text color (dark for high contrast)
+textColor="#333333" 
+# Font family
+font="sans serif"

@@ -4,9 +4,9 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
 # Note: datetime is not strictly needed here, but kept for clarity if future date logic is added
 
-# ----------------------------------------
+
 # 2. COLLABORATIVE FILTERING COMPONENT
-# ----------------------------------------
+
 def matrix_factorization(rating_matrix, n_components=5):
     """Performs low-rank approximation with TruncatedSVD."""
     svd = TruncatedSVD(n_components=n_components, random_state=42)
@@ -17,9 +17,9 @@ def matrix_factorization(rating_matrix, n_components=5):
     pred_df = pd.DataFrame(pred_ratings, index=rating_matrix.index, columns=rating_matrix.columns)
     return pred_df
 
-# ----------------------------------------
+
 # 3. CONTENT-BASED FILTERING COMPONENT
-# ----------------------------------------
+
 def content_based_scores(customer_id, rating_df, asset_df, limit_prices_df):
     """
     Calculates similarity scores based on asset features and the user's purchased history (profile).
@@ -71,9 +71,9 @@ def content_based_scores(customer_id, rating_df, asset_df, limit_prices_df):
     
     return content_scores
 
-# ----------------------------------------
+
 # 4. DEMOGRAPHIC-BASED COMPONENT
-# ----------------------------------------
+
 def demographic_score(customer_id, customer_df, asset_df):
     """
     Returns a score for each asset based on how well the assetCategory aligns with the customer's
@@ -159,9 +159,9 @@ def demographic_score(customer_id, customer_df, asset_df):
     scores = asset_df["assetCategory"].map(category_sim_map).fillna(0.5)
     return pd.Series(scores.values, index=asset_df["ISIN"])
 
-# ----------------------------------------
+
 # 5. HYBRID RECOMMENDATION & UTILITIES
-# ----------------------------------------
+
 def normalize_scores(s):
     """Normalizes a Series to the range [0, 1]."""
     if s.max() - s.min() > 0:
