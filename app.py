@@ -65,7 +65,7 @@ def main():
     st.title("💰 Hybrid Investment Recommendation System")
     
     # Display author information (Using columns to center/style it nicely)
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         st.markdown(
             """
