@@ -168,7 +168,6 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
                 data['asset_df'], 
                 current_customer_df, 
                 data['limit_prices_df'], 
-                weights, 
                 top_n=int(N)
             )
             
