@@ -45,22 +45,6 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
----
-
-## Project Structure
-
-```text
-├── source/
-│   ├── recommender.py      Hybrid recommendation logic
-│   ├── evaluation.py       ROI and performance metrics
-│   ├── profile_manager.py  User profiling and questionnaire handling
-│   └── views.py            Streamlit UI components
-├── data/                   Input datasets
-├── app.py                  Application entry point
-└── README.md
-```
-
----
 
 ## Evaluation Metrics
 
