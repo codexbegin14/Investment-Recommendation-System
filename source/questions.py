@@ -21,7 +21,7 @@ options = {
     'q17': {'a': "High returns", 'b': "Accept some loss", 'c': "Steady income", 'd': "Stable income", 'e': "Capital preservation"},
     'q18': {'a': "Prefer gains", 'b': "Often prefer gains", 'c': "Both equally", 'd': "Often avoid losses", 'e': "Always avoid losses"},
     'q19': {'a': "Buy more", 'b': "Rebalance (buy)", 'c': "Hold", 'd': "Sell some", 'e': "Sell all"},
-    'q13': {'a': ">1M €", 'b': "300k–1M €", 'c': "80k–300k €", 'd': "30k–80k €", 'e': "≤30k €"},
+    'q13': {'a': ">1M ", 'b': "300k–1M ", 'c': "80k–300k ", 'd': "30k–80k ", 'e': "≤30k "},
     'q6': {'a': "Low", 'b': "Average", 'c': "Good", 'd': "Expert"},
     'q7': {'a': "None", 'b': "Moderate", 'c': "Experienced", 'd': "Very experienced"},
     'q8': {'a': "Rare (1–2/yr)", 'b': "Occasional (2–3/mo)", 'c': "Monthly/biweekly", 'd': "Very often (≥2/wk)"}

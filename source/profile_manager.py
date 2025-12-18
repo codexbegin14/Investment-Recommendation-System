@@ -1,10 +1,10 @@
 import pandas as pd
 from datetime import datetime
 
-
-
 def process_questionnaire_responses(responses):
-
+    """
+    Calculates Risk Level and Investment Capacity based on questionnaire answers.
+    """
     # Risk level determination based on key questions
     risk_questions = {
         'q16': 0.3,  # Risk appetite
@@ -51,19 +51,38 @@ def process_questionnaire_responses(responses):
     return risk_level, investment_capacity
 
 def update_customer_profile(customer_id, risk_level, investment_capacity, customer_df):
-  
+    """
+    Updates the customer dataframe.
+    IMPORTANT: Maintains the Customer ID as the DataFrame Index so app.py can find it.
+    """
     current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    new_row = pd.DataFrame({
+    # 1. Create a dictionary with the specific column names app.py expects
+    # Note: app.py uses .get('Risk_Level') and .get('Investment_Capacity')
+    data = {
         'customerID': [customer_id],
-        # Assuming new users from the questionnaire start as 'Mass' type
         'customerType': ['Mass'], 
-        'riskLevel': [risk_level],
-        'investmentCapacity': [investment_capacity],
+        'Risk_Level': [risk_level],              # FIXED: Matches app.py expectation
+        'Investment_Capacity': [investment_capacity], # FIXED: Matches app.py expectation
         'lastQuestionnaireDate': [current_time_str.split(' ')[0]],
         'timestamp': [current_time_str]
-    })
+    }
     
-    # Append new row to customer_df
-    updated_df = pd.concat([customer_df, new_row], ignore_index=True)
-    return updated_df
+    # 2. Create the new row and SET THE INDEX explicitly
+    new_row = pd.DataFrame(data, index=[customer_id])
+    
+    # 3. Check if user already exists in the DataFrame (converting to string to be safe)
+    # This prevents duplicate rows if they update their profile twice
+    str_index = customer_df.index.astype(str)
+    
+    if str(customer_id) in str_index:
+        # Update specific columns for the existing user
+        # We find the location of this index and update it
+        customer_df.loc[customer_df.index.astype(str) == str(customer_id), 'Risk_Level'] = risk_level
+        customer_df.loc[customer_df.index.astype(str) == str(customer_id), 'Investment_Capacity'] = investment_capacity
+        return customer_df
+    else:
+        # 4. Append new row
+        # IMPORTANT: Removed ignore_index=True so we keep the customer_id as the index
+        updated_df = pd.concat([customer_df, new_row])
+        return updated_df
