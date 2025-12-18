@@ -7,7 +7,7 @@ import source.views as views
 def main():
     st.set_page_config(
         page_title="Hybrid Investment Recommender",
-        page_icon="💰",
+    
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -26,7 +26,7 @@ def main():
     customer_id_input, weights, N = views.render_sidebar(customer_list)
     
     # 5. Main Tabs
-    tab_profile, tab_recs = st.tabs(["📝 User Profile & Risk", "📈 Investment Dashboard"])
+    tab_profile, tab_recs = st.tabs([" User Profile & Risk", "Investment Dashboard"])
     
     with tab_profile:
         views.render_profile_tab(customer_id_input, data['customer_df'])

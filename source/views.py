@@ -10,7 +10,7 @@ def render_header():
     col_logo, col_title = st.columns([1, 6])
     with col_logo:
         st.write("") # Spacer
-        st.markdown("# 💰") 
+        st.markdown("# ") 
     with col_title:
         st.title("Hybrid Investment Recommendation System")
         st.caption("AI-Powered Portfolio Tailoring using Collaborative & Content-Based Filtering")
@@ -19,7 +19,7 @@ def render_header():
     st.markdown("""
         <div class="author-box">
             <p class="author-text">
-                👨‍💻 Project Team: <b>Abdullah Azhar Khan</b> (23k-0691) | <b>Usaid Sajid</b> (23k-0654) | <b>Muhammad Awais</b> (23k-0544)
+                Project Team: <b>Abdullah Azhar Khan</b> (23k-0691) | <b>Usaid Sajid</b> (23k-0654) | <b>Muhammad Awais</b> (23k-0544)
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -33,7 +33,7 @@ def render_sidebar(customer_list):
         
         st.markdown("---")
         
-        st.markdown("### ⚙️ Algorithm Weights")
+        st.markdown("###  Algorithm Weights")
         if 'weights' not in st.session_state:
             st.session_state.weights = [0.4, 0.3, 0.3] 
 
@@ -43,10 +43,10 @@ def render_sidebar(customer_list):
         
         total_w = cf_weight + cb_weight + demo_weight
         if total_w != 1.0:
-            st.warning(f"⚠️ Weights sum to {total_w:.1f}. They should ideally sum to 1.0")
+            st.warning(f" Weights sum to {total_w:.1f}. They should ideally sum to 1.0")
 
         st.markdown("---")
-        st.markdown("### 📊 Output Settings")
+        st.markdown("###  Output Settings")
         N = st.slider("Top N Recommendations", 1, 20, 10)
 
         st.session_state.weights = [cf_weight, cb_weight, demo_weight]
@@ -96,14 +96,14 @@ def render_profile_tab(customer_id_input, customer_df):
 
             st.markdown(f"""
             <div class="profile-card">
-            <div class="profile-header">👤 User Profile</div>
+            <div class="profile-header"> User Profile</div>
             <div style="margin-bottom: 15px;">
             <span class="id-badge">ID: {customer_id_input}</span>
             </div>
             <div class="metric-label">Risk Appetite</div>
             <div class="badge {risk_class}">{curr_risk}</div>
             <div class="metric-label">Investment Capacity</div>
-            <div class="capacity-value">💰 {clean_cap}</div>
+            <div class="capacity-value"> {clean_cap}</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -134,7 +134,7 @@ def render_profile_tab(customer_id_input, customer_df):
                 st.divider()
                 q_index += 1
             
-            submitted = st.form_submit_button("🚀 Update Profile", type="primary")
+            submitted = st.form_submit_button(" Update Profile", type="primary")
             
             if submitted:
                 risk_level, investment_capacity = process_questionnaire_responses(st.session_state.questionnaire_responses)
@@ -146,7 +146,7 @@ def render_profile_tab(customer_id_input, customer_df):
                     customer_id_input, risk_level, investment_capacity, st.session_state.live_customer_df
                 )
                 
-                st.toast(f"Profile updated! Risk: {risk_level}", icon="✅")
+                st.toast(f"Profile updated! Risk: {risk_level}", icon="")
                 st.rerun()
 
 def render_dashboard_tab(customer_id_input, N, weights, data):
@@ -154,7 +154,7 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
     
     col_gen_btn, col_status = st.columns([1, 4])
     with col_gen_btn:
-        generate = st.button("✨ Generate Portfolio", type="primary", use_container_width=True)
+        generate = st.button("Generate Portfolio", type="primary", use_container_width=True)
     
     if generate:
         with st.spinner("Analyzing market data and computing optimal matches..."):
@@ -201,7 +201,7 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
             col_chart, col_table = st.columns([1, 2])
             
             with col_chart:
-                st.markdown("##### 🍰 Sector Allocation")
+                st.markdown("#####  Sector Allocation")
                 if not rec_details.empty:
                     fig = px.pie(
                         rec_details, 
@@ -214,7 +214,7 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
                     st.plotly_chart(fig, use_container_width=True)
 
             with col_table:
-                st.markdown("##### 📋 Asset Details")
+                st.markdown("#####  Asset Details")
                 try:
                     import matplotlib
                     styled_df = rec_details.style.format({
