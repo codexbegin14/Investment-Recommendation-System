@@ -146,7 +146,7 @@ def render_profile_tab(customer_id_input, customer_df):
                     customer_id_input, risk_level, investment_capacity, st.session_state.live_customer_df
                 )
                 
-                st.toast(f"Profile updated! Risk: {risk_level}", icon="")
+                st.toast(f"Profile updated! Risk: {risk_level}", icon=None)
                 st.rerun()
 
 def render_dashboard_tab(customer_id_input, N, weights, data):
