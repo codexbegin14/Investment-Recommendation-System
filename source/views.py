@@ -19,7 +19,7 @@ def render_header():
     st.markdown("""
         <div class="author-box">
             <p class="author-text">
-                👨‍💻 Project Team: <b>Muhammad Awais</b> (23k-0544) | <b>Usaid Sajid</b> (23k-0654) | <b>Abdullah Azhar Khan</b> (23k-0691)
+                👨‍💻 Project Team: <b>Abdullah Azhar Khan</b> (23k-0691) | <b>Usaid Sajid</b> (23k-0654) | <b>Muhammad Awais</b> (23k-0544)
             </p>
         </div>
     """, unsafe_allow_html=True)
