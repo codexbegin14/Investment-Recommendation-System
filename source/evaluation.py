@@ -10,8 +10,9 @@ def compute_rmse(pred_df, test_df):
         
     y_true, y_pred = [], []
     for _, row in test_df.iterrows():
-        u, i = row['customerID'], row['ISIN']
+        u, i = str(row['customerID']), row['ISIN']
         if (u in pred_df.index) and (i in pred_df.columns):
+
             y_true.append(1.0)  
             y_pred.append(pred_df.at[u,i])
     
