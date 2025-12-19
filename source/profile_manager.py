@@ -7,10 +7,10 @@ def process_questionnaire_responses(responses):
     """
     # Risk level determination based on key questions
     risk_questions = {
-        'q16': 0.3,  # Risk appetite
-        'q17': 0.3,  # Investment expectations
-        'q18': 0.2,  # Focus on gains vs losses
-        'q19': 0.2   # Reaction to 20% decline
+        'Q1': 0.3,  # Risk appetite
+        'Q2': 0.3,  # Investment expectations
+        'Q3': 0.2,  # Focus on gains vs losses
+        'Q4': 0.2   # Reaction to 20% decline
     }
     
     risk_score = 0
@@ -33,20 +33,16 @@ def process_questionnaire_responses(responses):
     else:
         risk_level = "Conservative"
     
-    # Investment capacity determination
-    if 'q13' in responses and responses['q13'] is not None:
-        investment = responses['q13']
-        # Mapping: 'a' is highest capacity, 'e' is lowest capacity
-        if investment == 'a':
-            investment_capacity = "CAP_GT300K"
-        elif investment == 'b':
-            investment_capacity = "CAP_80K_300K"
-        elif investment == 'c':
-            investment_capacity = "CAP_30K_80K"
-        else:
-            investment_capacity = "CAP_LT30K"
-    else:
-        investment_capacity = "CAP_LT30K"  # Default to lowest capacity
+    # Investment capacity determination (matches questions.py options for Q5)
+    capacity_map = {
+        'a': "CAP_GT1M",       # >1M
+        'b': "CAP_300K_1M",    # 300k-1M
+        'c': "CAP_80K_300K",   # 80k-300k
+        'd': "CAP_30K_80K",    # 30k-80k
+        'e': "CAP_LT30K"       # <=30k
+    }
+    investment = responses.get('Q5')
+    investment_capacity = capacity_map.get(investment, "CAP_LT30K")
     
     return risk_level, investment_capacity
 

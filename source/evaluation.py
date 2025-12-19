@@ -55,19 +55,20 @@ def precision_recall_at_n(all_recs_dict, test_df, N):
         
     return np.mean(precisions), np.mean(recalls)
 def compute_roi_at_k(recommendations, limit_prices_df, k=10):
-   
+    """Calculate average ROI for top-k recommendations."""
     if recommendations is None or len(recommendations) == 0:
         return None
-        
-    # Get top-k recommendations
+
     top_k = recommendations.head(k)
-    
-    roi_values = limit_prices_df.set_index('ISIN')['profitability'].loc[top_k.index]
-    
-    # Calculate average ROI
-    avg_roi = roi_values.mean()
-    
-    return avg_roi
+    price_index = limit_prices_df.set_index('ISIN')['profitability']
+
+    # Only include ISINs that exist in limit_prices_df
+    valid_isins = top_k.index.intersection(price_index.index)
+    if len(valid_isins) == 0:
+        return None
+
+    roi_values = price_index.loc[valid_isins]
+    return roi_values.mean()
 
 def compute_ndcg_at_k(recommendations, test_df, k=10):
    

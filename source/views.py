@@ -170,7 +170,7 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
     st.subheader(f"Investment Strategy for {customer_id_input}")
     st.caption("Generate an optimized shortlist based on the hybrid recommender.")
 
-    generate = st.button("Generate Portfolio", type="primary", use_container_width=True)
+    generate = st.button("Generate Recommended Portfolio", type="primary", use_container_width=True)
 
     if generate:
         with st.spinner("Computing recommendations..."):

@@ -5,13 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MinMaxScaler
 
 
-# 1. NORMALIZATION UTILITIES
-
-
-def rank_normalize(series):
-    if series.empty:
-        return series
-    return series.rank(pct=True)
+# --- NORMALIZATION ---
 
 def softmax_normalize(series, temperature=1.0):
     x = series.fillna(0).values / temperature
@@ -19,8 +13,7 @@ def softmax_normalize(series, temperature=1.0):
     return pd.Series(e_x / e_x.sum(), index=series.index)
 
 
-# 2. COLLABORATIVE FILTERING
-
+# --- COLLABORATIVE FILTERING ---
 
 def matrix_factorization(rating_matrix, n_components=10):
     if rating_matrix.shape[0] < 2 or rating_matrix.shape[1] < 2:
@@ -42,8 +35,7 @@ def matrix_factorization(rating_matrix, n_components=10):
     return preds.add(user_means, axis=0)
 
 
-# 3. CONTENT-BASED FILTERING
-
+# --- CONTENT-BASED FILTERING ---
 
 def content_based_scores(customer_id, rating_df, asset_df, limit_prices_df):
     features = asset_df[['ISIN', 'assetCategory', 'sector', 'industry']].copy()
@@ -99,8 +91,7 @@ def content_based_scores(customer_id, rating_df, asset_df, limit_prices_df):
     return pd.Series(similarity, index=encoded.index)
 
 
-# 4. DEMOGRAPHIC / RISK MATCHING
-
+# --- DEMOGRAPHIC / RISK MATCHING ---
 
 def demographic_score(customer_id, customer_df, asset_df):
     customer_df['customerID'] = customer_df['customerID'].astype(str)
@@ -116,7 +107,7 @@ def demographic_score(customer_id, customer_df, asset_df):
         "Aggressive": 4
     }
 
-    raw_risk = user_row.iloc[0].get('riskLevel', 'Balanced')
+    raw_risk = user_row.iloc[0].get('Risk_Level', user_row.iloc[0].get('riskLevel', 'Balanced'))
     raw_risk = str(raw_risk).replace("Predicted_", "")
     user_risk = risk_map.get(raw_risk, 2.5)
 
@@ -147,8 +138,7 @@ def demographic_score(customer_id, customer_df, asset_df):
     return scores
 
 
-# 5. HYBRID RECOMMENDER
-
+# --- HYBRID RECOMMENDER ---
 
 def hybrid_recommendation(
     customer_id,

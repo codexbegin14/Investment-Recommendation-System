@@ -1,24 +1,21 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime
-import os
+
 
 def load_data():
+    """Load all CSV data files and ensure consistent ID types."""
     asset_df = pd.read_csv("data/asset_information.csv")
     customer_df = pd.read_csv("data/customer_information.csv")
     transactions_df = pd.read_csv("data/transactions.csv")
     limit_prices_df = pd.read_csv("data/limit_prices.csv")
-    
+
+    # Ensure consistent string types for IDs
     customer_df['customerID'] = customer_df['customerID'].astype(str)
     transactions_df['customerID'] = transactions_df['customerID'].astype(str)
-    
     asset_df['ISIN'] = asset_df['ISIN'].astype(str)
     transactions_df['ISIN'] = transactions_df['ISIN'].astype(str)
     limit_prices_df['ISIN'] = limit_prices_df['ISIN'].astype(str)
 
-    if 'customerID' in customer_df.columns:
-        pass 
-        
     return asset_df, customer_df, transactions_df, limit_prices_df
 
 def preprocess_data(transactions_df):
