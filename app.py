@@ -1,5 +1,5 @@
 import streamlit as st
-from source.styles import apply_custom_css
+from source.styles import apply_minimal_css
 from source.initialization import get_data_and_models
 import source.views as views
 
@@ -11,7 +11,7 @@ def main():
     )
     
     # 1. Apply Styles
-    apply_custom_css()
+    apply_minimal_css()
     
     # 2. Render Header
     views.render_header()
@@ -24,7 +24,7 @@ def main():
     customer_id_input, weights, N = views.render_sidebar(customer_list)
     
     # 5. Main Tabs
-    tab_profile, tab_recs = st.tabs([" User Profile & Risk", "Investment Dashboard"])
+    tab_profile, tab_recs = st.tabs(["User Profile & Risk", "Investment Dashboard"])
     
     with tab_profile:
         views.render_profile_tab(customer_id_input, data['customer_df'])
