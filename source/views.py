@@ -5,6 +5,7 @@ from source.questions import questions, options
 from source.profile_manager import process_questionnaire_responses, update_customer_profile
 from source.recommender import hybrid_recommendation
 from source.evaluation import compute_roi_at_k
+import matplotlib
 
 def render_header():
     col_logo, col_title = st.columns([1, 6])
@@ -216,7 +217,6 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
             with col_table:
                 st.markdown("#####  Asset Details")
                 try:
-                    import matplotlib
                     styled_df = rec_details.style.format({
                         'Score': '{:.4f}',
                         'Profitability': '{:.2%}',

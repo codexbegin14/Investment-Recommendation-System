@@ -7,7 +7,6 @@ import source.views as views
 def main():
     st.set_page_config(
         page_title="Hybrid Investment Recommender",
-    
         layout="wide",
         initial_sidebar_state="expanded"
     )
