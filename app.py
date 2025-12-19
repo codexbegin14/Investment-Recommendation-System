@@ -3,10 +3,9 @@ from source.styles import apply_custom_css
 from source.initialization import get_data_and_models
 import source.views as views
 
-# --- MAIN APP ---
 def main():
     st.set_page_config(
-        page_title="Hybrid Investment Recommender",
+        page_title="Hybrid Investment Recommendation System",
         layout="wide",
         initial_sidebar_state="expanded"
     )

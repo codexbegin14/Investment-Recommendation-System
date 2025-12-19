@@ -1,127 +1,126 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import textwrap
+
 from source.questions import questions, options
 from source.profile_manager import process_questionnaire_responses, update_customer_profile
 from source.recommender import hybrid_recommendation
 from source.evaluation import compute_roi_at_k
 
-
-# Optional but recommended in app.py (call once, not inside every rerun)
-# st.set_page_config(page_title="Hybrid Investment Recommendation System", layout="wide")
+def html(markup: str) -> None:
+    """
+    Render HTML reliably in Streamlit markdown:
+    - Removes indentation (dedent)
+    - Removes blank lines (prevents CommonMark HTML block termination for <div> blocks)
+    """
+    cleaned = textwrap.dedent(markup).strip()
+    cleaned = "\n".join(line for line in cleaned.splitlines() if line.strip() != "")
+    st.markdown(cleaned, unsafe_allow_html=True)
 
 
 def apply_minimal_css():
-    st.markdown(
-        """
-        <style>
-        :root{
-            --accent: #1f77b4;  /* blue */
-            --text: #000000;    /* black */
-            --bg: #ffffff;      /* white */
-        }
+    html("""
+    <style>
+    :root{
+        --accent: #1f77b4;  /* blue */
+        --text: #000000;    /* black */
+        --bg: #ffffff;      /* white */
+    }
 
-        /* Page container */
+    .main .block-container{
+        max-width: 1200px;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+    @media (max-width: 768px){
         .main .block-container{
-            max-width: 1200px;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            padding-left: 1.25rem;
-            padding-right: 1.25rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
-        @media (max-width: 768px){
-            .main .block-container{
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-        }
+    }
 
-        /* Ensure no shadows/glows anywhere */
-        *{ box-shadow: none !important; }
+    *{ box-shadow: none !important; }
 
-        /* Typography */
-        h1, h2, h3, h4, h5, h6 { color: var(--text); }
-        .subtle { color: rgba(0,0,0,0.72); }
+    h1, h2, h3, h4, h5, h6 { color: var(--text); }
+    .subtle { color: rgba(0,0,0,0.72); }
 
-        /* Minimal cards */
-        .card{
-            border: 1px solid rgba(0,0,0,0.14);
-            border-radius: 12px;
-            padding: 16px;
-            background: var(--bg);
-        }
-        .card-title{
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .label{
-            font-size: 0.85rem;
-            color: rgba(0,0,0,0.72);
-            margin-top: 10px;
-            margin-bottom: 6px;
-        }
+    .card{
+        border: 1px solid rgba(0,0,0,0.14);
+        border-radius: 12px;
+        padding: 16px;
+        background: var(--bg);
+    }
+    .card-title{
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .label{
+        font-size: 0.85rem;
+        color: rgba(0,0,0,0.72);
+        margin-top: 10px;
+        margin-bottom: 6px;
+    }
 
-        /* Pills / badges */
-        .pill{
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 10px;
-            border-radius: 999px;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            background: rgba(31,119,180,0.08);
-            font-size: 0.85rem;
-            font-weight: 600;
-            line-height: 1.2;
-        }
-        .pill-id{
-            border-color: rgba(0,0,0,0.18);
-            color: var(--text);
-            background: var(--bg);
-        }
+    .pill{
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        background: rgba(31,119,180,0.08);
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+    .pill-id{
+        border-color: rgba(0,0,0,0.18);
+        color: var(--text);
+        background: var(--bg);
+    }
 
-        /* Neutral notice (blue + black + white only) */
-        .notice{
-            border: 1px solid rgba(31,119,180,0.35);
-            border-radius: 12px;
-            padding: 10px 12px;
-            background: rgba(31,119,180,0.06);
-            color: rgba(0,0,0,0.88);
-        }
+    .notice{
+        border: 1px solid rgba(31,119,180,0.35);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(31,119,180,0.06);
+        color: rgba(0,0,0,0.88);
+    }
 
-        /* Forms: tighten spacing slightly */
-        div[data-testid="stForm"] { border: 0; padding: 0; }
-        div[data-testid="stRadio"] label { padding: 0.18rem 0; }
-        div[data-testid="stRadio"] div[role="radiogroup"] { gap: 0.25rem; }
+    div[data-testid="stForm"] { border: 0; padding: 0; }
+    div[data-testid="stRadio"] label { padding: 0.18rem 0; }
+    div[data-testid="stRadio"] div[role="radiogroup"] { gap: 0.25rem; }
 
-        /* Plotly chart: reduce extra whitespace */
-        .js-plotly-plot .plotly .modebar { display: none !important; }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    .js-plotly-plot .plotly .modebar { display: none !important; }
+    </style>
+    """)
+
 
 def render_header():
     apply_minimal_css()
 
     st.title("Hybrid Investment Recommendation System")
-    st.markdown('<div class="subtle">AI-Powered Portfolio Tailoring using Collaborative & Content-Based Filtering</div>', unsafe_allow_html=True)
-
     st.markdown(
-        """
-        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.14);">
-            <div class="subtle">
-                Project Team:
-                <b>Abdullah Azhar Khan</b> (23k-0691) |
-                <b>Usaid Sajid</b> (23k-0654) |
-                <b>Muhammad Awais</b> (23k-0544)
-            </div>
-        </div>
-        """,
+        '<div class="subtle">AI-Powered Portfolio Tailoring using Collaborative & Content-Based Filtering</div>',
         unsafe_allow_html=True
     )
 
+    html("""
+    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.14);">
+        <div class="subtle">
+            Project Team:
+            <b>Abdullah Azhar Khan</b> (23k-0691) |
+            <b>Usaid Sajid</b> (23k-0654) |
+            <b>Muhammad Awais</b> (23k-0544)
+        </div>
+    </div>
+    """)
+
     st.divider()
+
 
 def render_sidebar(customer_list):
     with st.sidebar:
@@ -146,10 +145,11 @@ def render_sidebar(customer_list):
 
         total_w = cf_weight + cb_weight + demo_weight
         if abs(total_w - 1.0) > 1e-9:
-            st.markdown(
-                f"<div class='notice'>Weights sum to <b>{total_w:.1f}</b>. Target is <b>1.0</b>.</div>",
-                unsafe_allow_html=True
-            )
+            html(f"""
+            <div class="notice">
+                Weights sum to <b>{total_w:.1f}</b>. Target is <b>1.0</b>.
+            </div>
+            """)
         else:
             st.caption("Weights sum to 1.0")
 
@@ -162,6 +162,7 @@ def render_sidebar(customer_list):
         weights = tuple(st.session_state.weights)
 
         return customer_id_input, weights, N
+
 
 def render_profile_tab(customer_id_input, customer_df):
     col_profile_info, col_q = st.columns([1, 2], gap="large")
@@ -193,33 +194,26 @@ def render_profile_tab(customer_id_input, customer_df):
             }
             clean_cap = cap_mapping.get(curr_cap, curr_cap)
 
-            st.markdown(
-                f"""
-                <div class="card">
-                    <div class="card-title">User Profile</div>
-                    <div style="margin-bottom: 10px;">
-                        <span class="pill pill-id">ID: {customer_id_input}</span>
-                    </div>
-
-                    <div class="label">Risk Appetite</div>
-                    <div><span class="pill">{curr_risk}</span></div>
-
-                    <div class="label">Investment Capacity</div>
-                    <div style="font-weight: 600;">{clean_cap}</div>
+            # IMPORTANT: no blank lines inside this <div> block (prevents HTML split)
+            html(f"""
+            <div class="card">
+                <div class="card-title">User Profile</div>
+                <div style="margin-bottom: 10px;">
+                    <span class="pill pill-id">ID: {customer_id_input}</span>
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
+                <div class="label">Risk Appetite</div>
+                <div><span class="pill">{curr_risk}</span></div>
+                <div class="label">Investment Capacity</div>
+                <div style="font-weight: 600;">{clean_cap}</div>
+            </div>
+            """)
         else:
-            st.markdown(
-                """
-                <div class="notice">
-                    <b>Profile not found.</b><br/>
-                    Submit the questionnaire to initialize this user profile.
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            html("""
+            <div class="notice">
+                <b>Profile not found.</b><br/>
+                Submit the questionnaire to initialize this user profile.
+            </div>
+            """)
 
     with col_q:
         st.subheader("Investor Questionnaire")
@@ -237,7 +231,7 @@ def render_profile_tab(customer_id_input, customer_df):
                     format_func=lambda x: options[q_id][x],
                     key=q_id,
                     label_visibility="collapsed",
-                    horizontal=False  # one option per line
+                    horizontal=False
                 )
                 st.session_state.questionnaire_responses[q_id] = response
                 st.divider()
@@ -256,12 +250,13 @@ def render_profile_tab(customer_id_input, customer_df):
                     customer_id_input, risk_level, investment_capacity, st.session_state.live_customer_df
                 )
 
-                # Avoid colored toast/success boxes; use neutral notice
-                st.markdown(
-                    f"<div class='notice'>Profile updated. Risk: <b>{risk_level}</b></div>",
-                    unsafe_allow_html=True
-                )
+                html(f"""
+                <div class="notice">
+                    Profile updated. Risk: <b>{risk_level}</b>
+                </div>
+                """)
                 st.rerun()
+
 
 def render_dashboard_tab(customer_id_input, N, weights, data):
     st.subheader(f"Investment Strategy for {customer_id_input}")
@@ -314,14 +309,9 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
                 st.markdown("##### Sector Allocation")
 
                 if not rec_details.empty:
-                    sector_counts = (
-                        rec_details['Sector']
-                        .value_counts()
-                        .reset_index()
-                    )
+                    sector_counts = rec_details['Sector'].value_counts().reset_index()
                     sector_counts.columns = ['Sector', 'Count']
 
-                    # Single-color (blue) bar chart for minimal palette compliance
                     fig = px.bar(
                         sector_counts,
                         x="Count",
@@ -343,14 +333,15 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
                         zeroline=False,
                         color="#000000"
                     )
-                    fig.update_yaxes(
-                        showgrid=False,
-                        color="#000000"
-                    )
+                    fig.update_yaxes(showgrid=False, color="#000000")
 
                     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
                 else:
-                    st.markdown("<div class='notice'>No recommendations available for this user.</div>", unsafe_allow_html=True)
+                    html("""
+                    <div class="notice">
+                        No recommendations available for this user.
+                    </div>
+                    """)
 
             with col_table:
                 st.markdown("##### Asset Details")
@@ -362,14 +353,18 @@ def render_dashboard_tab(customer_id_input, N, weights, data):
                             'Profitability': '{:.2%}',
                             'Price': '€{:.2f}'
                         }).background_gradient(subset=['Score'], cmap='Blues')
+                        st.dataframe(styled_df, height=350, use_container_width=True)
                     except Exception:
-                        styled_df = rec_details
-
-                    st.dataframe(styled_df, height=350, use_container_width=True)
+                        st.dataframe(rec_details, height=350, use_container_width=True)
                 else:
-                    st.markdown("<div class='notice'>No rows to display.</div>", unsafe_allow_html=True)
+                    html("""
+                    <div class="notice">
+                        No rows to display.
+                    </div>
+                    """)
 
-        st.markdown(
-            f"<div class='notice'>Analysis complete. Returned <b>{len(recs)}</b> recommendations.</div>",
-            unsafe_allow_html=True
-        )
+        html(f"""
+        <div class="notice">
+            Analysis complete. Returned <b>{len(recs)}</b> recommendations.
+        </div>
+        """)
