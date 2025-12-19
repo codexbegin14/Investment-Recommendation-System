@@ -151,9 +151,8 @@ def hybrid_recommendation(
     top_n=10
 ):
 
-    cid = str(customer_id)
-    has_history = cid in rating_df['customerID'].astype(str).values
-    has_cf = cid in pred_df.index.astype(str)
+    has_history = customer_id in rating_df['customerID'].astype(str).values
+    has_cf = str(customer_id) in pred_df.index.astype(str)
 
     if not has_history:
         weights = (0.0, 0.6, 0.4)
